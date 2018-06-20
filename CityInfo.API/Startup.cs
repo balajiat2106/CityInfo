@@ -11,6 +11,8 @@ using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 using CityInfo.API.Services;
 using Microsoft.Extensions.Configuration;
+using CityInfo.API.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace CityInfo.API
 {
@@ -23,6 +25,8 @@ namespace CityInfo.API
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            var ConnString=@"Server=localhost\SQLEXPRESS;Database=master;Trusted_Connection=True;";
+            services.AddDbContext<CityContext>(o=>o.UseSqlServer(ConnString));
             services.AddMvc()
                 .AddMvcOptions(o=>o.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter()));
 #if DEBUG
