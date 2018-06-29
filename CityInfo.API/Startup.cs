@@ -25,7 +25,7 @@ namespace CityInfo.API
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            var ConnString=@"Server=localhost\SQLEXPRESS;Database=master;Trusted_Connection=True;";
+            var ConnString=@"Server=localhost\SQLEXPRESS;Database=CityInfoDB;Trusted_Connection=True;";
             services.AddDbContext<CityContext>(o=>o.UseSqlServer(ConnString));
             services.AddMvc()
                 .AddMvcOptions(o=>o.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter()));
@@ -34,6 +34,7 @@ namespace CityInfo.API
 #else
             services.AddTransient<IMailService,CloudMailService>();
 #endif
+            services.AddScoped<ICityInfoRepo,CityInfoRepo>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -53,6 +54,10 @@ namespace CityInfo.API
 
             app.UseStatusCodePages();
             app.UseMvc();
+            AutoMapper.Mapper.Initialize(cfg=>{
+                cfg.CreateMap<Entities.City,Models.CityDTO>();
+                cfg.CreateMap<Entities.PointsOfInterest,Models.PointsOFInterestDTO>();
+            });
         }
     }
 }
