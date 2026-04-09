@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Collections.Generic;
 using CityInfo.API.Models;
 using CityInfo.API.Services;
 using Microsoft.AspNetCore.JsonPatch;
@@ -31,7 +32,8 @@ namespace CityInfo.API.Controllers
                 _logger.LogInformation($"City with ID {cityId} cannot be found");
                 return NotFound();
             }
-            return Ok(city.PointOfInterest);
+            var results = city.PointOfInterest.Select(p => p.ToDto());
+            return Ok(results);
         }
 
         [HttpGet("{cityId}/pointsofInterest/{id}", Name = "GetPointOfInterestBasedOnID")]
@@ -42,7 +44,9 @@ namespace CityInfo.API.Controllers
             {
                 return NotFound();
             }
-            return Ok(city.PointOfInterest.FirstOrDefault(p => p.id == id));
+            var poi = city.PointOfInterest.FirstOrDefault(p => p.id == id);
+            if (poi == null) return NotFound();
+            return Ok(poi.ToDto());
         }
 
         [HttpPost("{cityId}/pointsofinterest")]

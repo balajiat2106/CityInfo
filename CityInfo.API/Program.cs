@@ -1,26 +1,60 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using NLog;
+using NLog.Web;
+using CityInfo.API.Services;
+using CityInfo.API.Entities;
+using Microsoft.EntityFrameworkCore;
 
-namespace CityInfo.API
+NLog.LogManager.Setup().LoadConfigurationFromAppSettings();
+var logger = NLog.LogManager.GetCurrentClassLogger();
+try
 {
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            BuildWebHost(args).Run();
-        }
+    var builder = WebApplication.CreateBuilder(args);
 
-        public static IWebHost BuildWebHost(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>()
-                .Build();
+    builder.Logging.ClearProviders();
+    builder.Host.UseNLog();
+
+    var ConnString = @"Server=localhost\SQLEXPRESS;Database=CityInfoDB;Trusted_Connection=True;";
+    builder.Services.AddDbContext<CityContext>(o => o.UseSqlServer(ConnString));
+
+    builder.Services.AddControllers()
+        .AddXmlDataContractSerializerFormatters()
+        .AddNewtonsoftJson();
+
+#if DEBUG
+    builder.Services.AddTransient<IMailService, MailService>();
+#else
+    builder.Services.AddTransient<IMailService, CloudMailService>();
+#endif
+
+    builder.Services.AddScoped<ICityInfoRepo, CityInfoRepo>();
+
+    var app = builder.Build();
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
     }
+    else
+    {
+        app.UseExceptionHandler("/Error");
+    }
+
+    app.UseStatusCodePages();
+    app.UseRouting();
+    app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+
+    app.Run();
+}
+catch (Exception ex)
+{
+    logger.Error(ex, "Stopped program because of exception");
+    throw;
+}
+finally
+{
+    NLog.LogManager.Shutdown();
 }

@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using CityInfo.API.Services;
-using AutoMapper;
 using System.Collections.Generic;
 
 namespace CityInfo.API.Controllers
@@ -12,14 +11,15 @@ namespace CityInfo.API.Controllers
         private ICityInfoRepo _cityInfoRepo;
         public CitiesController(ICityInfoRepo cityInfoRepo)
         {
-            _cityInfoRepo=cityInfoRepo;
+            _cityInfoRepo = cityInfoRepo;
         }
 
         [HttpGet()]
-        public IActionResult GetCities() {
+        public IActionResult GetCities()
+        {
             var cities = _cityInfoRepo.GetCities();
-            var results=Mapper.Map<IEnumerable<Models.CityDTO>>(cities);
-            return Ok(cities);
+            var results = cities.ToDto();
+            return Ok(results);
         }
 
         [HttpGet(template: "{id}")]

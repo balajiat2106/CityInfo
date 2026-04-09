@@ -8,8 +8,14 @@ namespace CityInfo.API.Services
 {
     public class MailService:IMailService
     {
-        private string fromAddress = Startup.Configuration["mailsettings:mailfrom"];
-        private string toAddress = Startup.Configuration["mailsettings:mailto"];
+        private readonly string fromAddress;
+        private readonly string toAddress;
+
+        public MailService(Microsoft.Extensions.Configuration.IConfiguration config)
+        {
+            fromAddress = config["mailsettings:mailfrom"];
+            toAddress = config["mailsettings:mailto"];
+        }
 
         public void SendMail(string subject,string message)
         {
